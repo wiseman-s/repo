@@ -3,18 +3,38 @@ import tensorflow as tf
 import numpy as np
 from PIL import Image
 import pickle
+import os
 
 # -------------------------------
-# Load model and threshold
+# Download model from Google Drive if not present
 # -------------------------------
+@st.cache_resource
+def download_model():
+    model_path = "breast_cancer_efficientnetb3_final.keras"
+    if not os.path.exists(model_path):
+        import gdown
+        # Google Drive shareable link ID
+        file_id = "11I5rUQMSpDcFolhzkfvrBwoFYDCyqKtJ"
+        url = f"https://drive.google.com/uc?id={file_id}"
+        gdown.download(url, model_path, quiet=False)
+    return model_path
+
 @st.cache_resource
 def load_model():
-    model = tf.keras.models.load_model("breast_cancer_efficientnetb3_final.keras")
+    model_path = download_model()
+    model = tf.keras.models.load_model(model_path)
     return model
 
+# -------------------------------
+# Load threshold
+# -------------------------------
 @st.cache_resource
 def load_threshold():
-    with open("threshold.pkl", "rb") as f:
+    threshold_path = "threshold.pkl"
+    if not os.path.exists(threshold_path):
+        st.error("Threshold file not found!")
+        st.stop()
+    with open(threshold_path, "rb") as f:
         threshold = pickle.load(f)
     return threshold
 
